@@ -3,7 +3,9 @@
 这是一个通过调用 **Google Veo v3** 模型和 **Gemini API**，支持广告模板的 **AI 视频广告生成工具**。用户可以输入产品关键词或品牌信息，系统将智能生成视频文案，并最终生成广告影片。
 
 ---
-
+<!-- ...existing code... -->
+<h2 style="font-size:2em;">在线演示👉<a href="https://www.puggyroom.com/video-ads/">在线演示地址</a></h2>
+<!-- ...existing code... -->
 ## 🧬 功能特色
 
 * 🎥 使用 **Google Veo v3** 模型生成真实感视频广告
