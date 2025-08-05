@@ -6,7 +6,10 @@ dist/
 .env.production
 .env.development
 .env.*
+<<<<<<< HEAD
 
+=======
+>>>>>>> dev-0805
 # === Python 后端 ===
 __pycache__/
 *.py[cod]
@@ -31,3 +34,5 @@ __pycache__/
 *.bak
 *.swp
 *.tmp
+.venv/ # 如果你还没写的话
+.venv/ # 如果你还没写的话
