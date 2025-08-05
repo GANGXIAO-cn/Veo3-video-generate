@@ -1,0 +1,32 @@
+# === Node.js 前端 ===
+node_modules/
+dist/
+.vite/
+.env
+.env.production
+.env.development
+
+# === Python 后端 ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+.venv/
+.env
+.env.*
+
+# === 编辑器/系统文件 ===
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# === Docker 相关 ===
+*.tar.gz
+
+# === 其他 ===
+*.bak
+*.swp
+*.tmp
