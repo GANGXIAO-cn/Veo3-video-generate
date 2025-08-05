@@ -1,0 +1,10 @@
+google-generativeai
+python-dotenv
+pandas
+openpyxl
+streamlit>=1.28.0
+requests
+flask 
+google-genai
+gunicorn
+flask-cors
