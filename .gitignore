@@ -30,3 +30,4 @@ __pycache__/
 *.bak
 *.swp
 *.tmp
+.venv/ # 如果你还没写的话
