@@ -5,7 +5,9 @@
 ---
 <!-- ...existing code... -->
 <h2 style="font-size:2em;">在线演示👉<a href="https://www.puggyroom.com/video-ads/">在线演示地址</a></h2>
+<h2 style="font-size:2em;">免费使用veo3模型的方法请参见：👉<a href="https://www.puggyroom.com/free-veo3-google-cloud-gemini-api-video-generator/">如何完全免费使用 Google Veo 3？0元解锁AI视频生成神器！</a></h2>
 <!-- ...existing code... -->
+
 ## 🧬 功能特色
 
 * 🎥 使用 **Google Veo v3** 模型生成真实感视频广告
@@ -49,7 +51,7 @@ npm install
 npm run dev
 ```
 
-默认地址：[http://localhost:3000](http://localhost:3000)
+默认地址：[http://localhost:5173](http://localhost:5173)
 
 ---
 
@@ -61,7 +63,7 @@ pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
 
-默认地址：[http://localhost:8501](http://localhost:8501)
+默认地址：[http://localhost:5001](http://localhost:5001)
 
 ---
 
@@ -74,7 +76,7 @@ GEMINI_API_KEY=你的个人 Gemini API Key
 ```
 
 Gemini API Key 可在 [Google AI Studio](https://makersuite.google.com/app/apikey) 申请。
-
+说明：veo3当前只能在付费层级使用，建议使用新的Google Cloud赠金进行试用，并且每次生成过程中除了调用veo API外 会调用文本生成模型进行提示词标准化。
 ---
 
 ## 🐳 Docker 部署
