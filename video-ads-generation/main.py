@@ -1,8 +1,9 @@
 import os
 import time
 import asyncio
+import json
 from dotenv import load_dotenv
-from typing import Annotated, TypedDict
+from typing import TypedDict
 
 from utils import (
     get_client,
@@ -16,21 +17,15 @@ from db_utils import log_to_db, init_db
 from prompt_library import PROMPT_LIBRARY
 
 
+
 # ✅ 类型约束（用于解析结构化 LLM 输出）
 class VideoDetails(TypedDict):
     title: str
     prompt: str
 
-import json
-from typing import TypedDict
 
-# 定义返回的 VideoDetails 类型
-class VideoDetails(TypedDict):
-    title: str
-    prompt: str
 
- 
-import json
+
 async def generate_veo3_video_prompt(client, ad_idea: str, prompt: str) -> VideoDetails:
     print(f"🧠 Generating prompt for idea: '{ad_idea}'")
     

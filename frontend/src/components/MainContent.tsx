@@ -48,53 +48,73 @@ export default function MainContent() {
     }
   }, [videoResult]);
 
-  const handleGenerate = async () => {
-    const key = sessionStorage.getItem("geminiApiKey");
-    if (!key) return alert("❌ 请先输入并验证 API Key！");
-    if (!adIdea) return alert("❌ 请填写你的广告创意");
-    if (!selectedPrompt) return alert("❌ 请选择一个提示词模板");
+const handleGenerate = async () => {
+  const key = sessionStorage.getItem("geminiApiKey");
+  if (!key) {
+    return alert("❌ 请先输入并验证 API Key！");
+  }
+  if (!adIdea) {
+    return alert("❌ 请填写你的广告创意");
+  }
+  if (!selectedPrompt) {
+    return alert("❌ 请选择一个提示词模板");
+  }
 
-    setLoading(true);
-    setVideoResult(null);
+  setLoading(true);
+  setVideoResult(null);
 
-    try {
-      // 1. 发起生成任务
-      const genRes = await fetch(`${API_BASE}/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ad_idea: adIdea,
-          prompt: prompt,         // 这里使用 prompt state
-          model,
-          resolution,
-          key,
-        }),
-      });
-      if (!genRes.ok) throw new Error(`生成接口错误: ${genRes.status}`);
-      const result = await genRes.json();
-      if (!result.video_url) throw new Error(result.error || "未知错误");
+  try {
+    // 1. 发起生成任务（不管状态码，先拿到 JSON）
+    const genRes = await fetch(`${API_BASE}/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ad_idea: adIdea,
+        prompt,
+        model,
+        resolution,
+        key,
+      }),
+    });
+    const result = await genRes.json();
 
-      // 2. 代理拉取视频流
-      const parts = result.video_url.split("/");
-      const fileName = parts[parts.length - 1].split(":")[0];
-      const vidRes = await fetch(`${API_BASE}/video/${fileName}`, {
-        headers: { "X-Goog-Api-Key": key },
-      });
-      if (!vidRes.ok) throw new Error("视频代理拉流失败");
-      const blob = await vidRes.blob();
-
-      setVideoResult({
-        title: result.title,
-        prompt: result.prompt,
-        video_url: URL.createObjectURL(blob),
-      });
-    } catch (e: any) {
-      console.error("操作流程出错:", e);
-      alert("❌ 操作失败: " + e.message);
-    } finally {
-      setLoading(false);
+    // 2. 如果 HTTP 非 2xx 或返回了结构化 error，就显示细化错误
+    if (!genRes.ok || result.error) {
+      const err = result.error || {
+        status: `HTTP_${genRes.status}`,
+        description: `服务器返回了状态码 ${genRes.status}`,
+        solution: "请稍后重试或联系管理员。",
+      };
+      return alert(
+        `❌ ${err.status}：${err.description}\n💡 解决方案：${err.solution}`
+      );
     }
-  };
+
+    // 3. 成功拿到 video_url，开始代理拉流
+    const parts = result.video_url.split("/");
+    const fileName = parts[parts.length - 1].split(":")[0];
+    const vidRes = await fetch(`${API_BASE}/video/${fileName}`, {
+      headers: { "X-Goog-Api-Key": key },
+    });
+    if (!vidRes.ok) {
+      throw new Error("视频代理拉流失败");
+    }
+    const blob = await vidRes.blob();
+
+    // 4. 更新状态，展示视频
+    setVideoResult({
+      title: result.title,
+      prompt: result.prompt,
+      video_url: URL.createObjectURL(blob),
+    });
+  } catch (e: any) {
+    console.error("操作流程出错:", e);
+    alert("❌ 操作失败: " + e.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="flex-1 bg-gray-900 text-white p-8 overflow-y-auto">
@@ -106,7 +126,9 @@ export default function MainContent() {
       </div>
       <p className="mb-4 text-gray-300">
         请输入 API Key 并选择模型与分辨率，点击按钮生成视频。
+       
       </p>
+      <p className="mb-4 text-gray-300"> 注意！veo3模型属于付费层级模型，只有绑定支付方式后才可以调用，生成过程中会附带调用gemini 2.0模型进行提示词处理，所以每次生成会产生一些额外费用。</p>
 
       {/* 输入区域 + 模板轮播 + 配置 + 生成按钮 */}
       <div className="bg-gray-800 rounded-lg p-6 shadow-md mb-6">
