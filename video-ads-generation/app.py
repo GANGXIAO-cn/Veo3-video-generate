@@ -7,6 +7,17 @@ import os, json, traceback, asyncio, requests
 from main import run_workflow
 from google import genai
 import re
+import threading, time
+from datetime import datetime, timezone
+
+# —— 留言板存储（可改成环境变量）——
+FEEDBACK_STORE = os.getenv("FEEDBACK_STORE", "feedback_store.json")
+FEEDBACK_LOCK = threading.Lock()
+
+# 简单的按 IP 限流：同一 IP 60 秒内最多 1 次
+RATE_LIMIT_WINDOW_SEC = 60
+_ip_last_post = {}
+
 # 如果你还有 google.genai.types 用到，就保留下面这一行
 # from google.genai import types
 # 1. 错误映射表
@@ -100,6 +111,76 @@ def parse_google_error(err_str: str) -> dict:
             'solution': '请检查错误详情，或联系管理员。'
         }
     return info
+
+#————留言板——————
+def _load_feedback():
+    if not os.path.exists(FEEDBACK_STORE):
+        return []
+    try:
+        with open(FEEDBACK_STORE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+def _save_feedback(items):
+    with open(FEEDBACK_STORE, "w", encoding="utf-8") as f:
+        json.dump(items, f, ensure_ascii=False, indent=2)
+
+def _now_iso():
+    return datetime.now(timezone.utc).isoformat()
+
+def _sanitize_text(s: str, max_len: int):
+    # 基础清洗：去掉首尾空白、限制长度
+    s = (s or "").strip()
+    if len(s) > max_len:
+        s = s[:max_len]
+    return s
+# ——— 公开留言板 —————————————————————————————————————————————
+@app.route("/api/feedback", methods=["GET"])
+def list_feedback():
+    """公开获取留言列表（最新在前）"""
+    with FEEDBACK_LOCK:
+        items = _load_feedback()
+    # 按时间倒序
+    items.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+    return jsonify(items)
+
+@app.route("/api/feedback", methods=["POST"])
+def post_feedback():
+    """发布留言（公开，不需要登录）"""
+    # 速率限制（按 IP）
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr) or "0.0.0.0"
+    now = time.time()
+    last = _ip_last_post.get(ip, 0)
+    if now - last < RATE_LIMIT_WINDOW_SEC:
+        return jsonify({"error": "提交过于频繁，请稍后再试。"}), 429
+
+    try:
+        data = request.get_json(force=True) or {}
+    except Exception:
+        return jsonify({"error": "请求体需为 JSON"}), 400
+
+    nickname = _sanitize_text(data.get("nickname", "匿名用户"), 24) or "匿名用户"
+    message  = _sanitize_text(data.get("message", ""), 800)
+
+    if not message:
+        return jsonify({"error": "message 不能为空"}), 400
+
+    item = {
+        "id": os.urandom(12).hex(),
+        "nickname": nickname,
+        "message": message,
+        "created_at": _now_iso(),   # ISO 时间，前端可直接 toLocaleString()
+    }
+
+    with FEEDBACK_LOCK:
+        items = _load_feedback()
+        items.append(item)
+        _save_feedback(items)
+
+    _ip_last_post[ip] = now
+    return jsonify(item), 201
+# ——— 管理端留言板（需要 API Key） —————————————————————————————
 
 # ——— 提示词相关 —————————————————————————————————————————————
 @app.route("/api/prompt-library", methods=["GET"])

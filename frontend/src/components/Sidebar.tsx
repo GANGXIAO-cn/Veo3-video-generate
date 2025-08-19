@@ -1,6 +1,7 @@
 // src/components/Sidebar.tsx
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import AdUnit from "./AdUnit";
 
 const Sidebar: React.FC = () => {
   const [geminiKey, setGeminiKey] = useState("");
@@ -100,7 +101,15 @@ const Sidebar: React.FC = () => {
           {message}
         </p>
       )}
+       <div className="mb-4">
+          <AdUnit
+            adSlot="XXXXX" // ← 第二个广告的 slot
+            className="w-full"
+          />
+        </div>
     </div>
+     
+     
   );
 };
 

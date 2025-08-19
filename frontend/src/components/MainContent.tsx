@@ -1,11 +1,15 @@
 // src/components/MainContent.tsx
 import { useState, useEffect, useRef } from "react";
 import PromptCarousel from "./PromptCarousel"; // 路径按你的目录调整
+import AdUnit from "./AdUnit"; // 路径按你的目录调整
+import FeedbackFab from "./FeedbackFab";
+import FeedbackModal from "./FeedbackModal";
 
 // 从 Vite 环境变量里读取后端基址（在 .env.production 中设置 VITE_API_BASE_URL），
 // 如果为空，则回退到当前域的 /api
 const rawBase = import.meta.env.VITE_API_BASE_URL || "";
 const API_BASE = rawBase.replace(/\/+$/, "") || "/api";
+
 
 export default function MainContent() {
   const [adIdea, setAdIdea] = useState("");
@@ -22,7 +26,7 @@ export default function MainContent() {
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
-
+  const [showFeedback, setShowFeedback] = useState(false);
   // 加载可用模板
   useEffect(() => {
     fetch(`${API_BASE}/prompts`)
@@ -117,6 +121,7 @@ const handleGenerate = async () => {
 
 
   return (
+    
     <div className="flex-1 bg-gray-900 text-white p-8 overflow-y-auto">
       {/* 标题 & API Key */}
       <h1 className="text-3xl font-bold mb-6">🎬 AI 视频广告生成器</h1>
@@ -129,7 +134,8 @@ const handleGenerate = async () => {
        
       </p>
       <p className="mb-4 text-gray-300"> 注意！veo3模型属于付费层级模型，只有绑定支付方式后才可以调用，生成过程中会附带调用gemini 2.0模型进行提示词处理，所以每次生成会产生一些额外费用。</p>
-
+      <h1 className="text-3xl font-bold mb-6">🎬 AI 视频广告生成器</h1>
+   
       {/* 输入区域 + 模板轮播 + 配置 + 生成按钮 */}
       <div className="bg-gray-800 rounded-lg p-6 shadow-md mb-6">
         {/* 广告创意 */}
@@ -193,7 +199,10 @@ const handleGenerate = async () => {
           {loading ? "⏳ 生成中..." : "🚀 生成视频"}
         </button>
       </div>
-
+       {/* 横幅广告区域 */}
+        <div className="mb-4" style={{ minHeight: 50 }}>
+          <AdUnit adSlot="XXXX" className="w-full" />
+        </div>
       {/* 结果区（包含下载提示、标题、说明、视频播放器） */}
       <div ref={resultRef} className="mt-6 border-t border-gray-700 pt-4">
         <h2 className="text-xl font-semibold mb-2">🎞️ 生成结果</h2>
@@ -231,6 +240,9 @@ const handleGenerate = async () => {
           </div>
         )}
       </div>
+       {/* 悬浮反馈按钮 & 弹窗（真正挂载到页面） */}
+      <FeedbackFab onClick={() => setShowFeedback(true)} />
+      <FeedbackModal apiBase={API_BASE} open={showFeedback} onClose={() => setShowFeedback(false)} />
     </div>
   );
 }
